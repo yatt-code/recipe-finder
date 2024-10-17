@@ -20,7 +20,8 @@ const logout = () => {
     <nav class="mb-4 flex justify-between items-center">
       <div>
         <router-link to="/" class="mr-4 text-blue-500 hover:text-blue-700">All Recipes</router-link>
-        <router-link to="/favorites" class="text-blue-500 hover:text-blue-700">Favorites</router-link>
+        <router-link to="/favorites" class="mr-4 text-blue-500 hover:text-blue-700">Favorites</router-link>
+        <router-link v-if="currentUser" to="/add-recipe" class="text-blue-500 hover:text-blue-700">Add Recipe</router-link>
       </div>
       <div v-if="currentUser">
         <span class="mr-4">Welcome, {{ currentUser.username }}</span>

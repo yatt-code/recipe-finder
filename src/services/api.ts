@@ -8,6 +8,7 @@ export interface Recipe {
   image: string[]
   recipeIngredient: string[]
   recipeInstructions: { text: string }[]
+  userId?: string // Add this line
   // Add other properties as needed
 }
 

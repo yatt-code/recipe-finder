@@ -6,8 +6,9 @@ import './index.css'
 import RecipeList from './components/RecipeList.vue'
 import RecipeDetails from './components/RecipeDetails.vue'
 import FavoriteRecipes from './components/FavoriteRecipes.vue'
-import { useRecipeStore } from './stores/recipeStore'
 import UserLogin from './components/UserLogin.vue'
+import RecipeForm from './components/RecipeForm.vue'
+import { useRecipeStore } from './stores/recipeStore'
 import { useUserStore } from './stores/userStore'
 
 const app = createApp(App)
@@ -22,12 +23,15 @@ const router = createRouter({
     { path: '/favorites', component: FavoriteRecipes },
     { path: '/recipe/:name', component: RecipeDetails, props: true },
     { path: '/login', component: UserLogin },
+    { path: '/add-recipe', component: RecipeForm },
+    { path: '/edit-recipe/:name', component: RecipeForm, name: 'edit-recipe' },
   ]
 })
 app.use(router)
 
 const recipeStore = useRecipeStore()
 recipeStore.loadFavoritesFromLocalStorage()
+recipeStore.loadFromLocalStorage()
 
 const userStore = useUserStore()
 userStore.loadFromLocalStorage()
