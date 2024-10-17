@@ -5,6 +5,7 @@ import App from './App.vue'
 import './index.css'
 import RecipeList from './components/RecipeList.vue'
 import RecipeDetails from './components/RecipeDetails.vue'
+import FavoriteRecipes from './components/FavoriteRecipes.vue'
 import { useRecipeStore } from './stores/recipeStore'
 
 const app = createApp(App)
@@ -16,6 +17,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: RecipeList },
+    { path: '/favorites', component: FavoriteRecipes },
     { path: '/recipe/:name', component: RecipeDetails, props: true }
   ]
 })
