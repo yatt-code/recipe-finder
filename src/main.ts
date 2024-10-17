@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import './index.css'
 import RecipeList from './components/RecipeList.vue'
+import RecipeDetails from './components/RecipeDetails.vue'
 
 const app = createApp(App)
 
@@ -13,7 +14,8 @@ app.use(pinia)
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: RecipeList }
+    { path: '/', component: RecipeList },
+    { path: '/recipe/:name', component: RecipeDetails, props: true }
   ]
 })
 app.use(router)
