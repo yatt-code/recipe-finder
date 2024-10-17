@@ -5,6 +5,7 @@ import App from './App.vue'
 import './index.css'
 import RecipeList from './components/RecipeList.vue'
 import RecipeDetails from './components/RecipeDetails.vue'
+import { useRecipeStore } from './stores/recipeStore'
 
 const app = createApp(App)
 
@@ -19,5 +20,8 @@ const router = createRouter({
   ]
 })
 app.use(router)
+
+const recipeStore = useRecipeStore()
+recipeStore.loadFavoritesFromLocalStorage()
 
 app.mount('#app')

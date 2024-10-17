@@ -11,10 +11,12 @@ export interface Recipe {
   // Add other properties as needed
 }
 
-export const fetchRecipes = async (): Promise<Recipe[]> => {
+export const fetchRecipes = async (page: number, limit: number): Promise<Recipe[]> => {
   try {
     const response = await axios.get<Recipe[]>(API_URL)
-    return response.data
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    return response.data.slice(startIndex, endIndex)
   } catch (error) {
     console.error('Error fetching recipes:', error)
     return []
