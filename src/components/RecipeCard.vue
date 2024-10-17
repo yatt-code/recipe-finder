@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+  <div class="card" @click="$emit('click')">
     <div class="relative pb-2/3">
       <img 
         v-if="hasValidImage" 
@@ -18,8 +18,8 @@
       <h2 class="text-xl font-semibold mb-2 truncate">{{ recipe.name }}</h2>
       <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ recipe.description }}</p>
       <div class="flex justify-between items-center">
-        <button @click="goToDetails" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
-          View Details
+        <button v-if="isLoggedIn" @click.stop="$emit('edit')" class="btn btn-secondary">
+          Edit
         </button>
         <button @click.stop="toggleFavorite" class="text-2xl focus:outline-none">
           {{ isFavorite ? '❤️' : '🤍' }}
@@ -32,7 +32,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Recipe } from '../services/api'
-import { useRouter } from 'vue-router'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useUserStore } from '../stores/userStore'
 
@@ -40,32 +39,26 @@ const props = defineProps<{
   recipe: Recipe
 }>()
 
-const router = useRouter()
 const recipeStore = useRecipeStore()
 const userStore = useUserStore()
 
 const isFavorite = computed(() => recipeStore.isFavorite(props.recipe.name))
 const hasValidImage = ref(props.recipe.image && props.recipe.image.length > 0)
 
-const canEdit = computed(() => {
-  return userStore.currentUser && props.recipe.userId === userStore.currentUser.id
-})
-
-const goToDetails = () => {
-  router.push(`/recipe/${encodeURIComponent(props.recipe.name)}`)
-}
+const isLoggedIn = computed(() => !!userStore.currentUser)
 
 const toggleFavorite = () => {
   recipeStore.toggleFavorite(props.recipe.name)
 }
 
-const editRecipe = () => {
-  router.push(`/edit-recipe/${encodeURIComponent(props.recipe.name)}`)
-}
-
 const handleImageError = () => {
   hasValidImage.value = false
 }
+
+defineEmits<{
+  (e: 'click'): void
+  (e: 'edit'): void
+}>()
 </script>
 
 <style scoped>

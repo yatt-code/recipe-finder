@@ -8,8 +8,9 @@ export interface Recipe {
   image: string[]
   recipeIngredient: string[]
   recipeInstructions: { text: string }[]
-  userId?: string // Add this line
-  // Add other properties as needed
+  userId?: string
+  isUserCreated?: boolean
+  originalId?: string
 }
 
 export const fetchRecipes = async (page: number, limit: number): Promise<Recipe[]> => {

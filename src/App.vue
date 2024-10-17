@@ -15,35 +15,47 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-4">Recipe Collection</h1>
-    <nav class="mb-4 flex justify-between items-center">
-      <div>
-        <router-link to="/" class="mr-4 text-blue-500 hover:text-blue-700">All Recipes</router-link>
-        <router-link to="/favorites" class="mr-4 text-blue-500 hover:text-blue-700">Favorites</router-link>
-        <router-link v-if="currentUser" to="/add-recipe" class="text-blue-500 hover:text-blue-700">Add Recipe</router-link>
+  <div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <h1 class="text-2xl font-bold text-indigo-600">Recipe Collection</h1>
+            </div>
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <router-link to="/" class="nav-link">All Recipes</router-link>
+              <router-link to="/favorites" class="nav-link">Favorites</router-link>
+              <router-link v-if="currentUser" to="/add-recipe" class="nav-link">Add Recipe</router-link>
+            </div>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:items-center">
+            <div v-if="currentUser" class="ml-3 relative">
+              <span class="mr-4">Welcome, {{ currentUser.username }}</span>
+              <button @click="logout" class="btn btn-secondary">Logout</button>
+            </div>
+            <router-link v-else to="/login" class="btn btn-primary">Login/Register</router-link>
+          </div>
+        </div>
       </div>
-      <div v-if="currentUser">
-        <span class="mr-4">Welcome, {{ currentUser.username }}</span>
-        <button @click="logout" class="text-blue-500 hover:text-blue-700">Logout</button>
-      </div>
-      <router-link v-else to="/login" class="text-blue-500 hover:text-blue-700">Login/Register</router-link>
     </nav>
-    <router-view></router-view>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 pt-16">
+      <router-view></router-view>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.nav-link {
+  @apply inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.nav-link.router-link-active {
+  @apply border-indigo-500 text-gray-900;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.nav-link:not(.router-link-active) {
+  @apply border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700;
 }
 </style>

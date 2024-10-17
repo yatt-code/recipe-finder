@@ -4,6 +4,8 @@ import { useUserStore } from './userStore'
 
 interface UserRecipe extends Recipe {
   userId: string;
+  isUserCreated: boolean;
+  originalId?: string; // Reference to the original API recipe if it's an edit
 }
 
 export const useRecipeStore = defineStore('recipe', {
@@ -42,13 +44,13 @@ export const useRecipeStore = defineStore('recipe', {
       this.loading = true
       this.error = null
       try {
-        const userStore = useUserStore()
         const newRecipes = await fetchRecipes(this.page, this.limit)
-        const userRecipes = newRecipes.map(recipe => ({
+        const apiRecipes = newRecipes.map(recipe => ({
           ...recipe,
-          userId: userStore.currentUser?.id || 'public'
+          userId: 'public',
+          isUserCreated: false
         }))
-        this.recipes.push(...userRecipes)
+        this.recipes.push(...apiRecipes)
         this.page++
         this.hasMore = newRecipes.length === this.limit
       } catch (error) {
@@ -95,25 +97,63 @@ export const useRecipeStore = defineStore('recipe', {
       if (userStore.currentUser) {
         const userRecipe: UserRecipe = {
           ...recipe,
-          userId: userStore.currentUser.id
+          userId: userStore.currentUser.id,
+          isUserCreated: true
         }
-        this.recipes.push(userRecipe)
+        this.recipes.unshift(userRecipe) // Add to the beginning of the array
         this.saveToLocalStorage()
       }
     },
     editRecipe(updatedRecipe: UserRecipe) {
-      const index = this.recipes.findIndex(r => r.name === updatedRecipe.name && r.userId === updatedRecipe.userId)
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+
+      const index = this.recipes.findIndex(r => r.name === updatedRecipe.name)
       if (index !== -1) {
-        this.recipes[index] = updatedRecipe
+        if (this.recipes[index].userId === 'public') {
+          // If it's an API recipe, create a new user recipe
+          const userRecipe: UserRecipe = {
+            ...updatedRecipe,
+            userId: userStore.currentUser.id,
+            isUserCreated: true,
+            originalId: this.recipes[index].name // Store the original recipe name as reference
+          }
+          this.recipes.unshift(userRecipe)
+        } else {
+          // If it's already a user recipe, just update it
+          this.recipes[index] = updatedRecipe
+        }
         this.saveToLocalStorage()
       }
     },
     saveToLocalStorage() {
-      localStorage.setItem('recipes', JSON.stringify(this.recipes))
+      const userRecipes = this.recipes.filter(recipe => recipe.isUserCreated)
+      localStorage.setItem('userRecipes', JSON.stringify(userRecipes))
     },
     loadFromLocalStorage() {
-      const recipes = localStorage.getItem('recipes')
-      if (recipes) this.recipes = JSON.parse(recipes)
+      const userRecipes = localStorage.getItem('userRecipes')
+      if (userRecipes) {
+        const parsedRecipes = JSON.parse(userRecipes) as UserRecipe[]
+        // Merge user recipes with API recipes, prioritizing user recipes
+        this.recipes = this.recipes.map(recipe => {
+          const userVersion = parsedRecipes.find(r => r.originalId === recipe.name || r.name === recipe.name)
+          return userVersion || recipe
+        })
+        // Add any new user-created recipes
+        const newUserRecipes = parsedRecipes.filter(r => !this.recipes.some(recipe => recipe.name === r.name))
+        this.recipes.unshift(...newUserRecipes)
+      }
+    },
+    getRecipeForDisplay(recipeName: string): UserRecipe | undefined {
+      const userStore = useUserStore()
+      const userId = userStore.currentUser?.id
+
+      // First, try to find a user-modified version of the recipe
+      const userRecipe = this.recipes.find(r => r.name === recipeName && r.userId === userId)
+      if (userRecipe) return userRecipe
+
+      // If not found, return the original recipe (API or user-created)
+      return this.recipes.find(r => r.name === recipeName)
     },
   },
 })
