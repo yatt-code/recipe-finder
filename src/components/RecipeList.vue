@@ -1,22 +1,25 @@
 <template>
   <div>
     <!-- Hero Section -->
-    <div class="bg-indigo-700 text-white">
-      <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-        <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl mb-6">
+    <div class="bg-primary-700 text-white relative overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <img src="/hero-background.jpg" alt="Cooking background" class="w-full h-full object-cover opacity-30">
+      </div>
+      <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 relative z-10">
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl mb-6 font-serif">
           Discover Delicious Recipes
         </h1>
-        <p class="mt-6 text-xl max-w-3xl">
+        <p class="mt-6 text-xl max-w-3xl mx-auto">
           Explore our collection of mouthwatering recipes and find your next culinary adventure.
         </p>
-        <!-- Search Bar -->
-        <div class="mt-8 w-full max-w-xl">
+        <!-- Search Bar in Hero Section -->
+        <div class="mt-8 max-w-xl mx-auto">
           <div class="relative rounded-md shadow-sm">
             <input
               v-model="searchQuery"
               @input="search"
               type="text"
-              class="input pr-10 text-gray-900 placeholder-gray-500 w-full"
+              class="input pr-10 text-gray-900 placeholder-gray-500 w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Search recipes..."
             />
             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -41,7 +44,7 @@
             v-model="searchQuery"
             @input="search"
             type="text"
-            class="input pr-10 text-gray-900 placeholder-gray-500 w-full"
+            class="input pr-10 text-gray-900 placeholder-gray-500 w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="Search recipes..."
           />
           <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -57,7 +60,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div v-if="error" class="text-center text-red-500 mb-4">{{ error }}</div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template v-if="loading && recipes.length === 0">
+          <RecipeCardSkeleton v-for="n in 6" :key="n" />
+        </template>
         <RecipeCard 
+          v-else
           v-for="recipe in filteredRecipes" 
           :key="recipe.name" 
           :recipe="recipe" 
@@ -66,8 +73,8 @@
           @edit="openEditRecipeForm(recipe)"
         />
       </div>
-      <div v-if="loading" class="text-center my-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+      <div v-if="loading && recipes.length > 0" class="text-center my-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
       </div>
       <div v-if="!hasMore" class="text-center my-8 text-gray-500">No more recipes to load</div>
     </div>
@@ -113,6 +120,9 @@ import RecipeDetails from './RecipeDetails.vue'
 import RecipeForm from './RecipeForm.vue'
 import Modal from './Modal.vue'
 import type { Recipe } from '../services/api'
+import { debounce } from 'lodash-es'
+import RecipeCardSkeleton from './RecipeCardSkeleton.vue'
+import { useToast } from 'vue-toastification'
 
 const recipeStore = useRecipeStore()
 const { recipes, loading, error, hasMore } = storeToRefs(recipeStore)
@@ -139,10 +149,14 @@ const filteredRecipes = computed(() => {
   return filtered.sort((a, b) => (b.isUserCreated ? 1 : 0) - (a.isUserCreated ? 1 : 0))
 })
 
-const search = () => {
+const debouncedSearch = debounce(() => {
   recipeStore.resetRecipes()
   recipeStore.setSearchQuery(searchQuery.value)
   recipeStore.fetchRecipes()
+}, 300)
+
+const search = () => {
+  debouncedSearch()
 }
 
 const handleScroll = () => {
@@ -152,7 +166,7 @@ const handleScroll = () => {
   }
 
   // Show floating search bar when scrolled past hero section
-  const heroSection = document.querySelector('.bg-indigo-700')
+  const heroSection = document.querySelector('.bg-primary-700')
   if (heroSection) {
     showFloatingSearch.value = window.scrollY > heroSection.clientHeight
   }
@@ -194,11 +208,15 @@ const closeModal = () => {
   recipeToEdit.value = null
 }
 
+const toast = useToast()
+
 const saveRecipe = (recipe: Recipe) => {
   if (recipeToEdit.value) {
     recipeStore.editRecipe(recipe)
+    toast.success('Recipe updated successfully!')
   } else {
     recipeStore.addRecipe(recipe)
+    toast.success('Recipe added successfully!')
   }
   closeModal()
 }
@@ -215,6 +233,6 @@ onUnmounted(() => {
 
 <style scoped>
 .input {
-  @apply w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white;
+  @apply w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white transition-all duration-300 ease-in-out;
 }
 </style>

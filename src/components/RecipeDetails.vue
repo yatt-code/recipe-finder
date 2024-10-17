@@ -1,7 +1,13 @@
 <template>
   <div v-if="recipe" class="recipe-details">
     <h2 class="text-2xl font-bold mb-4">{{ recipe.name }}</h2>
-    <img v-if="recipe.image && recipe.image.length > 0" :src="recipe.image[0]" :alt="recipe.name" class="w-full h-64 object-cover mb-4 rounded-lg">
+    <img 
+      v-if="hasValidImage" 
+      :src="imageSrc" 
+      :alt="recipe.name" 
+      class="w-full h-64 object-cover mb-4 rounded-lg"
+      @error="handleImageError"
+    >
     <div v-else class="w-full h-64 bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
       <span class="text-gray-500">No image available</span>
     </div>
@@ -27,9 +33,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Recipe } from '../services/api'
 
-defineProps<{
+const props = defineProps<{
   recipe: Recipe | null
 }>()
+
+const hasValidImage = ref(props.recipe?.image && props.recipe.image.length > 0)
+const imageSrc = ref(props.recipe?.image && props.recipe.image.length > 0 ? props.recipe.image[0] : '')
+
+const handleImageError = () => {
+  hasValidImage.value = false
+  imageSrc.value = '' // Clear the image source to prevent further attempts to load
+}
 </script>

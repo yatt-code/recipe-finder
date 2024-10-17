@@ -20,7 +20,12 @@ export const fetchRecipes = async (page: number, limit: number): Promise<Recipe[
     const endIndex = startIndex + limit
     return response.data.slice(startIndex, endIndex)
   } catch (error) {
-    console.error('Error fetching recipes:', error)
-    return []
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.message)
+      throw new Error(`Failed to fetch recipes: ${error.message}`)
+    } else {
+      console.error('Unexpected error:', error)
+      throw new Error('An unexpected error occurred while fetching recipes')
+    }
   }
 }

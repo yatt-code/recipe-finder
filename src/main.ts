@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
+import Toast from 'vue-toastification'
+import 'vue-toastification/dist/index.css'
 import App from './App.vue'
 import './index.css'
 import RecipeList from './components/RecipeList.vue'
@@ -15,6 +17,7 @@ const app = createApp(App)
 
 const pinia = createPinia()
 app.use(pinia)
+app.use(Toast)
 
 const router = createRouter({
   history: createWebHistory(),

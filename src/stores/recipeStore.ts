@@ -54,8 +54,12 @@ export const useRecipeStore = defineStore('recipe', {
         this.page++
         this.hasMore = newRecipes.length === this.limit
       } catch (error) {
-        this.error = 'Failed to fetch recipes'
-        console.error(error)
+        if (error instanceof Error) {
+          this.error = error.message
+        } else {
+          this.error = 'An unexpected error occurred'
+        }
+        console.error('Error fetching recipes:', error)
       } finally {
         this.loading = false
       }
@@ -127,21 +131,31 @@ export const useRecipeStore = defineStore('recipe', {
       }
     },
     saveToLocalStorage() {
-      const userRecipes = this.recipes.filter(recipe => recipe.isUserCreated)
-      localStorage.setItem('userRecipes', JSON.stringify(userRecipes))
+      try {
+        const userRecipes = this.recipes.filter(recipe => recipe.isUserCreated)
+        localStorage.setItem('userRecipes', JSON.stringify(userRecipes))
+      } catch (error) {
+        console.error('Error saving to localStorage:', error)
+        // Optionally, you could set an error state here to display to the user
+      }
     },
     loadFromLocalStorage() {
-      const userRecipes = localStorage.getItem('userRecipes')
-      if (userRecipes) {
-        const parsedRecipes = JSON.parse(userRecipes) as UserRecipe[]
-        // Merge user recipes with API recipes, prioritizing user recipes
-        this.recipes = this.recipes.map(recipe => {
-          const userVersion = parsedRecipes.find(r => r.originalId === recipe.name || r.name === recipe.name)
-          return userVersion || recipe
-        })
-        // Add any new user-created recipes
-        const newUserRecipes = parsedRecipes.filter(r => !this.recipes.some(recipe => recipe.name === r.name))
-        this.recipes.unshift(...newUserRecipes)
+      try {
+        const userRecipes = localStorage.getItem('userRecipes')
+        if (userRecipes) {
+          const parsedRecipes = JSON.parse(userRecipes) as UserRecipe[]
+          // Merge user recipes with API recipes, prioritizing user recipes
+          this.recipes = this.recipes.map(recipe => {
+            const userVersion = parsedRecipes.find(r => r.originalId === recipe.name || r.name === recipe.name)
+            return userVersion || recipe
+          })
+          // Add any new user-created recipes
+          const newUserRecipes = parsedRecipes.filter(r => !this.recipes.some(recipe => recipe.name === r.name))
+          this.recipes.unshift(...newUserRecipes)
+        }
+      } catch (error) {
+        console.error('Error loading from localStorage:', error)
+        // Optionally, you could set an error state here to display to the user
       }
     },
     getRecipeForDisplay(recipeName: string): UserRecipe | undefined {
