@@ -1,9 +1,14 @@
 import { defineStore } from 'pinia'
 import { fetchRecipes, Recipe } from '../services/api'
+import { useUserStore } from './userStore'
+
+interface UserRecipe extends Recipe {
+  userId: string;
+}
 
 export const useRecipeStore = defineStore('recipe', {
   state: () => ({
-    recipes: [] as Recipe[],
+    recipes: [] as UserRecipe[],
     loading: false,
     error: null as string | null,
     searchQuery: '',
@@ -25,6 +30,10 @@ export const useRecipeStore = defineStore('recipe', {
     isFavorite: (state) => (recipeName: string) => {
       return state.favorites.includes(recipeName)
     },
+    userRecipes(): UserRecipe[] {
+      const userStore = useUserStore()
+      return this.recipes.filter(recipe => recipe.userId === userStore.currentUser?.id)
+    },
   },
   actions: {
     async fetchRecipes() {
@@ -33,8 +42,13 @@ export const useRecipeStore = defineStore('recipe', {
       this.loading = true
       this.error = null
       try {
+        const userStore = useUserStore()
         const newRecipes = await fetchRecipes(this.page, this.limit)
-        this.recipes.push(...newRecipes)
+        const userRecipes = newRecipes.map(recipe => ({
+          ...recipe,
+          userId: userStore.currentUser?.id || 'public'
+        }))
+        this.recipes.push(...userRecipes)
         this.page++
         this.hasMore = newRecipes.length === this.limit
       } catch (error) {
@@ -75,6 +89,31 @@ export const useRecipeStore = defineStore('recipe', {
       if (favorites) {
         this.favorites = JSON.parse(favorites)
       }
+    },
+    addRecipe(recipe: Omit<Recipe, 'userId'>) {
+      const userStore = useUserStore()
+      if (userStore.currentUser) {
+        const userRecipe: UserRecipe = {
+          ...recipe,
+          userId: userStore.currentUser.id
+        }
+        this.recipes.push(userRecipe)
+        this.saveToLocalStorage()
+      }
+    },
+    editRecipe(updatedRecipe: UserRecipe) {
+      const index = this.recipes.findIndex(r => r.name === updatedRecipe.name && r.userId === updatedRecipe.userId)
+      if (index !== -1) {
+        this.recipes[index] = updatedRecipe
+        this.saveToLocalStorage()
+      }
+    },
+    saveToLocalStorage() {
+      localStorage.setItem('recipes', JSON.stringify(this.recipes))
+    },
+    loadFromLocalStorage() {
+      const recipes = localStorage.getItem('recipes')
+      if (recipes) this.recipes = JSON.parse(recipes)
     },
   },
 })
