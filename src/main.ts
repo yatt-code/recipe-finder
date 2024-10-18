@@ -1,3 +1,16 @@
+/**
+ * Recipe Collection App
+ * 
+ * @author  Yatt
+ * @website https://yatt.codes
+ * @github  https://github.com/yatt-code
+ * 
+ * @disclaimer This project is a skill assessment task from Encore Med Sdn Bhd
+ * 
+ * Copyright (c) 2024 Yatt
+ * All rights reserved.
+ */
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'

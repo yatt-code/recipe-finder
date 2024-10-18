@@ -31,6 +31,19 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * Recipe Collection App
+ * 
+ * @author  Yatt
+ * @website https://yatt.codes
+ * @github  https://github.com/yatt-code
+ * 
+ * @disclaimer This project is a skill assessment task from Encore Med Sdn Bhd
+ * 
+ * Copyright (c) 2024 Yatt
+ * All rights reserved.
+ */
+
 import { computed, ref } from 'vue'
 import { Recipe } from '../services/api'
 import { useRecipeStore } from '../stores/recipeStore'
